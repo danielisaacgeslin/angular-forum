@@ -273,39 +273,48 @@ module.exports = (function(){
     }
 
     function getArticleTagList(articleId){
-
+      var defer = $q.defer();
+      return defer.promise;
     }
 
     function getComments(articleId){
-
+      var defer = $q.defer();
+      return defer.promise;
     }
 
     function getTags(){
-
+      var defer = $q.defer();
+      return defer.promise;
     }
 
     function setArticle(articleId, title, description, body){
-
+      var defer = $q.defer();
+      return defer.promise;
     }
 
     function setTag(articleId, tagId, tag){
-
+      var defer = $q.defer();
+      return defer.promise;
     }
 
     function setComment(articleId, commentId, comment){
-
+      var defer = $q.defer();
+      return defer.promise;
     }
 
     function deleteTag(tagId){
-
+      var defer = $q.defer();
+      return defer.promise;
     }
 
     function deleteArticle(articleId){
-
+      var defer = $q.defer();
+      return defer.promise;
     }
 
     function deleteComment(commentId){
-
+      var defer = $q.defer();
+      return defer.promise;
     }
 
     function resetArticles(){
