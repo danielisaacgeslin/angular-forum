@@ -9,11 +9,11 @@
 		vm.articles = {};
 
 		_activate();
-
 		function _activate(){
 			storeService.getArticleList().then(function(articles){
 				vm.articles = articles;
 			});
+			//storeService.setArticle(null,'titulo '.concat(Date.now()),'algo','cuerpo');
 		}
 
 	}

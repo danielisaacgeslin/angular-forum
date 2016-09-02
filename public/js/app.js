@@ -34,11 +34,11 @@
 		vm.articles = {};
 
 		_activate();
-
 		function _activate(){
 			storeService.getArticleList().then(function(articles){
 				vm.articles = articles;
 			});
+			//storeService.setArticle(null,'titulo '.concat(Date.now()),'algo','cuerpo');
 		}
 
 	}
@@ -63,9 +63,9 @@ module.exports = (function(){
 	'use strict';
 	angular.module('app').factory('ajaxService', ajaxService);
 
-	ajaxService.$inject = ['$http', 'constants'];
+	ajaxService.$inject = ['$http', '$httpParamSerializerJQLike', 'constants'];
 
-	function ajaxService($http, constants) {
+	function ajaxService($http, $httpParamSerializerJQLike, constants) {
     var url = constants.serviceUrl;
 
 		return {
@@ -95,7 +95,7 @@ module.exports = (function(){
 
     /*article_id(int)*/
     function getArticle(articleId){
-      return $http.get(url.concat('?route=getArticle&article_id=').concat(articleId));
+      return $http.get(url.concat('?route=getArticle&id=').concat(articleId));
     }
 
     /*N/A*/
@@ -120,74 +120,119 @@ module.exports = (function(){
 
     /*title(string), description(string), body(string)*/
     function saveArticle(title, description, body){
-      return $http.post(url.concat('?route=saveArticle'),{
-        title:title,
-        description:description,
-        body:body
-      });
+      return $http({
+				url:url.concat('?route=saveArticle'),
+				method: 'POST',
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				data:$httpParamSerializerJQLike({
+	        title:title,
+	        description:description,
+	        body:body
+	      })
+			});
     }
 
     /*article_id(int), title(string), description(string), body(string)*/
     function updateArticle(articleId, title, description, body){
-      return $http.post(url.concat('?route=updateArticle'),{
-        article_id: articleId,
-        title:title,
-        description:description,
-        body:body
-      });
+      return $http({
+				url:url.concat('?route=updateArticle'),
+				method: 'POST',
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				data: $httpParamSerializerJQLike({
+	        article_id: articleId,
+	        title:title,
+	        description:description,
+	        body:body
+	      })
+			});
     }
 
     /*article_id(int)*/
     function deleteArticle(articleId){
-      return $http.post(url.concat('?route=deleteArticle'),{
-        article_id: articleId
-      });
+			return $http({
+				url:url.concat('?route=deleteArticle'),
+				method: 'POST',
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				data: $httpParamSerializerJQLike({
+	        article_id: articleId
+	      })
+			});
     }
 
     /*article_id(int), tag_id(int)*/
     function addTag(articleId, tagId){
-      return $http.post(url.concat('?route=addTag'),{
-        article_id: articleId,
-        tag_id: tagId
-      });
+			return $http({
+				url:url.concat('?route=addTag'),
+				method: 'POST',
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				data: $httpParamSerializerJQLike({
+					article_id: articleId,
+	        tag_id: tagId
+	      })
+			});
     }
 
     /*article_id(int), tag_id(int)*/
     function removeTag(articleId, tagId){
-      return $http.post(url.concat('?route=removeTag'),{
-        article_id: articleId,
-        tag_id: tagId
-      });
+			return $http({
+				url:url.concat('?route=removeTag'),
+				method: 'POST',
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				data: $httpParamSerializerJQLike({
+					article_id: articleId,
+	        tag_id: tagId
+	      })
+			});
     }
 
     /*comment(string), article_id(int)*/
     function saveComment(comment, articleId){
-      return $http.post(url.concat('?route=saveComment'),{
-        comment: comment,
-        article_id: articleId
-      });
+			return $http({
+				url:url.concat('?route=saveComment'),
+				method: 'POST',
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				data: $httpParamSerializerJQLike({
+					comment: comment,
+	        article_id: articleId
+	      })
+			});
     }
 
     /*comment_id(int)*/
     function deleteComment(commentId){
-      return $http.post(url.concat('?route=deleteComment'),{
-        commentId: commentId
-      });
+			return $http({
+				url:url.concat('?route=deleteComment'),
+				method: 'POST',
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				data: $httpParamSerializerJQLike({
+					commentId: commentId
+	      })
+			});
     }
 
     /*comment_id(int), comment(string)*/
     function updateComment (comment_id, comment){
-      return $http.post(url.concat('?route=updateComment'),{
-        commentId: commentId,
-        comment: comment
-      });
+			return $http({
+				url:url.concat('?route=updateComment'),
+				method: 'POST',
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				data: $httpParamSerializerJQLike({
+					commentId: commentId,
+					comment: comment
+	      })
+			});
     }
 
     /*tag(string)*/
     function saveTag(tag){
-      return $http.post(url.concat('?route=saveTag'),{
-        tag: tag
-      });
+			return $http({
+				url:url.concat('?route=saveTag'),
+				method: 'POST',
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				data: $httpParamSerializerJQLike({
+					tag: tag
+	      })
+			});
     }
 
 	}
@@ -255,7 +300,18 @@ module.exports = (function(){
     };
 
     function getArticle(articleId){
-
+      var article;
+      var defer = $q.defer();
+      if(articles[articleId]){
+        defer.resolve(articles[articleId]);
+      }else{
+        ajaxService.getArticle(articleId).then(function(response){
+          article = processService.dbArrayAdapter(response.data.payload);
+          articles[articleId] = article[Object.keys(article)[0]];
+          defer.resolve(articles[articleId]);
+        });
+      }
+      return defer.promise;
     }
 
     function getArticleList(){
@@ -288,8 +344,15 @@ module.exports = (function(){
     }
 
     function setArticle(articleId, title, description, body){
-      var defer = $q.defer();
-      return defer.promise;
+      /*save*/
+      if(!articleId){
+        ajaxService.saveArticle(title, description, body).then(function(response){
+          return getArticle(response.data.payload);
+        });
+      }else{
+        return ajaxService.updateArticle(articleId, title, description, body);
+      }
+
     }
 
     function setTag(articleId, tagId, tag){

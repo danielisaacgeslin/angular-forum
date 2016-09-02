@@ -28,7 +28,18 @@
     };
 
     function getArticle(articleId){
-
+      var article;
+      var defer = $q.defer();
+      if(articles[articleId]){
+        defer.resolve(articles[articleId]);
+      }else{
+        ajaxService.getArticle(articleId).then(function(response){
+          article = processService.dbArrayAdapter(response.data.payload);
+          articles[articleId] = article[Object.keys(article)[0]];
+          defer.resolve(articles[articleId]);
+        });
+      }
+      return defer.promise;
     }
 
     function getArticleList(){
@@ -61,8 +72,15 @@
     }
 
     function setArticle(articleId, title, description, body){
-      var defer = $q.defer();
-      return defer.promise;
+      /*save*/
+      if(!articleId){
+        ajaxService.saveArticle(title, description, body).then(function(response){
+          return getArticle(response.data.payload);
+        });
+      }else{
+        return ajaxService.updateArticle(articleId, title, description, body);
+      }
+
     }
 
     function setTag(articleId, tagId, tag){
