@@ -10,6 +10,11 @@
 			templateUrl : "main.html",
 			controller: 'mainController',
 			controllerAs: 'vm'
+		}).state('/article', {
+			url : "/article/:id",
+      templateUrl : "article.html",
+      controller: 'articleController',
+      controllerAs: 'vm'
 		});
 	}
 

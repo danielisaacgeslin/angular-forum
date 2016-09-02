@@ -4,6 +4,7 @@
       <th>ID</th>
       <th>Title</th>
       <th>Creation</th>
+      <th></th>
     </tr>
   </thead>
   <tbody>
@@ -11,6 +12,7 @@
       <td>{{article.id}}</td>
       <td>{{article.title}}</td>
       <td>{{article.creation_timestamp | date: 'dd/MM/y HH:mm'}}</td>
+      <td><a ng-href="#/article/{{article.id}}">link</a></td>
     </tr>
   </tbody>
 </table>

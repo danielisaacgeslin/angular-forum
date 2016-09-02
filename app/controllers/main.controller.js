@@ -10,6 +10,7 @@
 
 		_activate();
 		function _activate(){
+			storeService.resetArticles();
 			storeService.getArticleList().then(function(articles){
 				vm.articles = articles;
 			});

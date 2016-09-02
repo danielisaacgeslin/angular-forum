@@ -11,6 +11,11 @@
 			templateUrl : "main.html",
 			controller: 'mainController',
 			controllerAs: 'vm'
+		}).state('/article', {
+			url : "/article/:id",
+      templateUrl : "article.html",
+      controller: 'articleController',
+      controllerAs: 'vm'
 		});
 	}
 
@@ -25,6 +30,27 @@
 },{}],2:[function(require,module,exports){
 (function(){
 	'use strict';
+	angular.module('app').controller('articleController', articleController);
+
+	articleController.$inject = ['$scope', '$state', 'storeService'];
+
+	function articleController($scope, $state, storeService) {
+		var vm = this;
+		vm.article = {};
+    
+		_activate();
+		function _activate(){
+			storeService.getArticle($state.params.id).then(function(article){
+				vm.article = article;
+			});
+		}
+
+	}
+})();
+
+},{}],3:[function(require,module,exports){
+(function(){
+	'use strict';
 	angular.module('app').controller('mainController', mainController);
 
 	mainController.$inject = ['$scope', 'storeService'];
@@ -35,6 +61,7 @@
 
 		_activate();
 		function _activate(){
+			storeService.resetArticles();
 			storeService.getArticleList().then(function(articles){
 				vm.articles = articles;
 			});
@@ -44,21 +71,22 @@
 	}
 })();
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 require('./modules/app.module');
 require('./config');
 require('./services/process.service');
 require('./services/ajax.service');
 require('./services/store.service');
 require('./controllers/main.controller');
+require('./controllers/article.controller');
 
-},{"./config":1,"./controllers/main.controller":2,"./modules/app.module":4,"./services/ajax.service":5,"./services/process.service":6,"./services/store.service":7}],4:[function(require,module,exports){
+},{"./config":1,"./controllers/article.controller":2,"./controllers/main.controller":3,"./modules/app.module":5,"./services/ajax.service":6,"./services/process.service":7,"./services/store.service":8}],5:[function(require,module,exports){
 module.exports = (function(){
   'use strict';
   angular.module('app', ['ui.router','ngSanitize']);
 })();
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 (function(){
 	'use strict';
 	angular.module('app').factory('ajaxService', ajaxService);
@@ -238,7 +266,7 @@ module.exports = (function(){
 	}
 })();
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 (function(){
 	'use strict';
 	angular.module('app').factory('processService', processService);
@@ -269,7 +297,7 @@ module.exports = (function(){
 	}
 })();
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 (function(){
 	'use strict';
 	angular.module('app').factory('storeService', storeService);
@@ -395,4 +423,4 @@ module.exports = (function(){
 	}
 })();
 
-},{}]},{},[3]);
+},{}]},{},[4]);
