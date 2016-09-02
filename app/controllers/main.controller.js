@@ -2,12 +2,19 @@
 	'use strict';
 	angular.module('app').controller('mainController', mainController);
 
-	mainController.$inject = ['$scope', 'ajaxService'];
+	mainController.$inject = ['$scope', 'storeService'];
 
-	function mainController($scope, ajaxService) {
+	function mainController($scope, storeService) {
 		var vm = this;
-		vm.test = 'testing this controller';
-		ajaxService.ping().then(function(result){console.log(result);});
-		console.log(vm.test);
+		vm.articles = {};
+
+		_activate();
+
+		function _activate(){
+			storeService.getArticleList().then(function(articles){
+				vm.articles = articles;
+			});
+		}
+
 	}
 })();

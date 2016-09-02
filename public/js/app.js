@@ -27,23 +27,32 @@
 	'use strict';
 	angular.module('app').controller('mainController', mainController);
 
-	mainController.$inject = ['$scope', 'ajaxService'];
+	mainController.$inject = ['$scope', 'storeService'];
 
-	function mainController($scope, ajaxService) {
+	function mainController($scope, storeService) {
 		var vm = this;
-		vm.test = 'testing this controller';
-		ajaxService.ping().then(function(result){console.log(result);});
-		console.log(vm.test);
+		vm.articles = {};
+
+		_activate();
+
+		function _activate(){
+			storeService.getArticleList().then(function(articles){
+				vm.articles = articles;
+			});
+		}
+
 	}
 })();
 
 },{}],3:[function(require,module,exports){
 require('./modules/app.module');
 require('./config');
+require('./services/process.service');
 require('./services/ajax.service');
+require('./services/store.service');
 require('./controllers/main.controller');
 
-},{"./config":1,"./controllers/main.controller":2,"./modules/app.module":4,"./services/ajax.service":5}],4:[function(require,module,exports){
+},{"./config":1,"./controllers/main.controller":2,"./modules/app.module":4,"./services/ajax.service":5,"./services/process.service":6,"./services/store.service":7}],4:[function(require,module,exports){
 module.exports = (function(){
   'use strict';
   angular.module('app', ['ui.router','ngSanitize']);
@@ -179,6 +188,136 @@ module.exports = (function(){
       return $http.post(url.concat('?route=saveTag'),{
         tag: tag
       });
+    }
+
+	}
+})();
+
+},{}],6:[function(require,module,exports){
+(function(){
+	'use strict';
+	angular.module('app').factory('processService', processService);
+
+	processService.$inject = [];
+
+	function processService() {
+		return {
+      dbArrayAdapter: dbArrayAdapter
+    };
+
+    function dbArrayAdapter(dbArray){
+      var dbObject = {}, tempObj = {}, value;
+      dbArray.forEach(function(object){
+        tempObj = {};
+        for(var key in object){
+          value = object[key];
+          if(new RegExp('timestamp','i').test(key)){
+            value = new Date(value);
+          }
+          tempObj[key.toLowerCase()] = value;
+        }
+        dbObject[tempObj.id] = tempObj;
+      });
+      return dbObject;
+    }
+
+	}
+})();
+
+},{}],7:[function(require,module,exports){
+(function(){
+	'use strict';
+	angular.module('app').factory('storeService', storeService);
+
+	storeService.$inject = ['ajaxService', 'processService', '$q'];
+
+	function storeService(ajaxService, processService, $q) {
+    var articles = {}, comments = {}, tags = {};
+
+		return {
+      getArticle: getArticle,
+      getArticleList: getArticleList,
+      getArticleTagList: getArticleTagList,
+      getComments: getComments,
+      getTags: getTags,
+
+      setArticle: setArticle,
+      setTag: setTag,
+      setComment: setComment,
+
+      deleteTag: deleteTag,
+      deleteArticle: deleteArticle,
+      deleteComment: deleteComment,
+
+      resetArticles: resetArticles,
+      resetComments: resetComments,
+      resetTags: resetTags
+    };
+
+    function getArticle(articleId){
+
+    }
+
+    function getArticleList(){
+      var defer = $q.defer();
+      if(Object.keys(articles).length){
+        defer.resolve(articles);
+      }else{
+        ajaxService.getArticleList().then(function(response){
+          articles = processService.dbArrayAdapter(response.data.payload);
+          defer.resolve(articles);
+        });
+      }
+
+      return defer.promise;
+    }
+
+    function getArticleTagList(articleId){
+
+    }
+
+    function getComments(articleId){
+
+    }
+
+    function getTags(){
+
+    }
+
+    function setArticle(articleId, title, description, body){
+
+    }
+
+    function setTag(articleId, tagId, tag){
+
+    }
+
+    function setComment(articleId, commentId, comment){
+
+    }
+
+    function deleteTag(tagId){
+
+    }
+
+    function deleteArticle(articleId){
+
+    }
+
+    function deleteComment(commentId){
+
+    }
+
+    function resetArticles(){
+      articles = {};
+    }
+
+    function resetTags(){
+      tags = {};
+    }
+
+    function resetComments(){
+      comments = {};
     }
 
 	}
