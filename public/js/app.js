@@ -36,14 +36,47 @@
 
 	function articleController($scope, $state, storeService) {
 		var vm = this;
+    vm.editEnabled = false;
 		vm.article = {};
-    
+    vm.edition = {};
+
+    vm.toggleEdit = toggleEdit;
+    vm.saveArticle = saveArticle;
+
 		_activate();
+    /*private functions*/
 		function _activate(){
-			storeService.getArticle($state.params.id).then(function(article){
-				vm.article = article;
-			});
+      if(isNaN($state.params.id)){
+        vm.editEnabled = true;
+      }else{
+        _getArticle($state.params.id);
+      }
 		}
+    function _getArticle(articleId){
+      storeService.getArticle(articleId).then(function(article){
+				vm.article = article;
+        vm.edition = Object.assign({},article);
+			});
+    }
+    /*end private functions*/
+
+    /*public functions*/
+    function toggleEdit(){
+      vm.editEnabled = !vm.editEnabled;
+      if(!vm.editEnabled){
+        vm.edition = Object.assign({},vm.article);
+      }
+    }
+    function saveArticle(){
+      storeService.setArticle(vm.edition.title, vm.edition.description, vm.edition.body, vm.article.id).then(function(article){
+        if(!vm.article.id){
+          $state.go('/article', {id: article.id}, {notify: false});
+        }
+        vm.article = article;
+        vm.edition = Object.assign({},article);
+      });
+    }
+    /*end public functions*/
 
 	}
 })();
@@ -65,7 +98,6 @@
 			storeService.getArticleList().then(function(articles){
 				vm.articles = articles;
 			});
-			//storeService.setArticle(null,'titulo '.concat(Date.now()),'algo','cuerpo');
 		}
 
 	}
@@ -336,7 +368,7 @@ module.exports = (function(){
         ajaxService.getArticle(articleId).then(function(response){
           article = processService.dbArrayAdapter(response.data.payload);
           articles[articleId] = article[Object.keys(article)[0]];
-          defer.resolve(articles[articleId]);
+          defer.resolve(articles[articleId] ? articles[articleId] : {});
         });
       }
       return defer.promise;
@@ -371,14 +403,18 @@ module.exports = (function(){
       return defer.promise;
     }
 
-    function setArticle(articleId, title, description, body){
+    function setArticle(title, description, body, articleId){
       /*save*/
       if(!articleId){
-        ajaxService.saveArticle(title, description, body).then(function(response){
+        return ajaxService.saveArticle(title, description, body).then(function(response){
           return getArticle(response.data.payload);
         });
+      /*update*/
       }else{
-        return ajaxService.updateArticle(articleId, title, description, body);
+        return ajaxService.updateArticle(articleId, title, description, body).then(function(response){
+          resetArticle(articleId);
+          return getArticle(articleId);
+        });
       }
 
     }
@@ -410,6 +446,10 @@ module.exports = (function(){
 
     function resetArticles(){
       articles = {};
+    }
+
+    function resetArticle(articleId){
+      delete articles[articleId];
     }
 
     function resetTags(){

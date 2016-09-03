@@ -1,3 +1,21 @@
-<h1>{{vm.article.title}}</h1>
-<h3>{{vm.article.description}}</h3>
-<p>{{vm.article.body}}</p>
+<div class="row">
+  <div class="col-md-9">
+    <article>
+      <h1>{{vm.editEnabled ? vm.edition.title : vm.article.title}}</h1>
+      <h3>{{vm.editEnabled ? vm.edition.description : vm.article.description}}</h3>
+      <p>{{vm.editEnabled ? vm.edition.body : vm.article.body}}</p>
+    </article>
+  </div>
+  <div class="col-md-3">
+    <button ng-click="vm.toggleEdit()" class="btn">{{vm.editEnabled ? 'Cancel' : 'Edit'}}</button>
+    <button ng-click="vm.saveArticle()" ng-if="vm.editEnabled" class="btn">Save</button>
+    <div ng-if="vm.editEnabled">
+      <label>Title</label>
+      <input type="text" ng-model="vm.edition.title"/>
+      <label>Description</label>
+      <input type="text" ng-model="vm.edition.description"/>
+      <label>Body</label>
+      <textarea ng-model="vm.edition.body"></textarea>
+    </div>
+  </div>
+</div>

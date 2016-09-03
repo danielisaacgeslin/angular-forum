@@ -36,7 +36,7 @@
         ajaxService.getArticle(articleId).then(function(response){
           article = processService.dbArrayAdapter(response.data.payload);
           articles[articleId] = article[Object.keys(article)[0]];
-          defer.resolve(articles[articleId]);
+          defer.resolve(articles[articleId] ? articles[articleId] : {});
         });
       }
       return defer.promise;
@@ -71,14 +71,18 @@
       return defer.promise;
     }
 
-    function setArticle(articleId, title, description, body){
+    function setArticle(title, description, body, articleId){
       /*save*/
       if(!articleId){
-        ajaxService.saveArticle(title, description, body).then(function(response){
+        return ajaxService.saveArticle(title, description, body).then(function(response){
           return getArticle(response.data.payload);
         });
+      /*update*/
       }else{
-        return ajaxService.updateArticle(articleId, title, description, body);
+        return ajaxService.updateArticle(articleId, title, description, body).then(function(response){
+          resetArticle(articleId);
+          return getArticle(articleId);
+        });
       }
 
     }
@@ -110,6 +114,10 @@
 
     function resetArticles(){
       articles = {};
+    }
+
+    function resetArticle(articleId){
+      delete articles[articleId];
     }
 
     function resetTags(){
