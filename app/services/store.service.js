@@ -122,6 +122,11 @@
     function deleteArticle(articleId){
       var defer = $q.defer();
       ajaxService.deleteArticle(articleId).then(function(response){
+        if(articles[articleId].comments){
+          for(var key in articles[articleId].comments){
+            delete comments[key];
+          }
+        }
         delete articles[articleId];
         defer.resolve(response);
       });
@@ -133,7 +138,7 @@
       ajaxService.deleteComment(commentId).then(function(response){
         delete comments[commentId];
         delete articles[articleId].comments[commentId];
-        defer.resolve();
+        defer.resolve(response);
       });
       return defer.promise;
     }
