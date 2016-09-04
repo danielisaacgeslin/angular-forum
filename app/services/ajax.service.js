@@ -48,8 +48,8 @@
     }
 
     /*article_id(int)*/
-    function getComments(){
-      return $http.get(url.concat('?route=getComments'));
+    function getComments(articleId){
+      return $http.get(url.concat('?route=getComments&article_id=').concat(articleId));
     }
 
     /*N/A*/
@@ -144,19 +144,19 @@
 				method: 'POST',
 				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 				data: $httpParamSerializerJQLike({
-					commentId: commentId
+					comment_id: commentId
 	      })
 			});
     }
 
     /*comment_id(int), comment(string)*/
-    function updateComment (comment_id, comment){
+    function updateComment (comment, commentId){
 			return $http({
 				url:url.concat('?route=updateComment'),
 				method: 'POST',
 				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 				data: $httpParamSerializerJQLike({
-					commentId: commentId,
+					comment_id: commentId,
 					comment: comment
 	      })
 			});

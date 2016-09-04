@@ -39,9 +39,16 @@
     vm.editEnabled = false;
 		vm.article = {};
     vm.edition = {};
+    vm.newComment = '';
+    vm.editableComment = -1;
+    vm.editableCommentText = '';
 
     vm.toggleEdit = toggleEdit;
     vm.saveArticle = saveArticle;
+    vm.saveComment = saveComment;
+    vm.editComment = editComment;
+    vm.updateComment = updateComment;
+    vm.deleteComment = deleteComment;
 
 		_activate();
     /*private functions*/
@@ -49,14 +56,22 @@
       if(isNaN($state.params.id)){
         vm.editEnabled = true;
       }else{
-        _getArticle($state.params.id);
+        _getArticle();
       }
 		}
-    function _getArticle(articleId){
-      storeService.getArticle(articleId).then(function(article){
+
+    function _getArticle(){
+      storeService.getArticle($state.params.id).then(function(article){
 				vm.article = article;
         vm.edition = Object.assign({},article);
+        if(!vm.article.comments){
+          _getComments();
+        }
 			});
+    }
+
+    function _getComments(){
+      storeService.getComments(vm.article.id);
     }
     /*end private functions*/
 
@@ -67,14 +82,36 @@
         vm.edition = Object.assign({},vm.article);
       }
     }
+
     function saveArticle(){
       storeService.setArticle(vm.edition.title, vm.edition.description, vm.edition.body, vm.article.id).then(function(article){
         if(!vm.article.id){
           $state.go('/article', {id: article.id}, {notify: false});
         }
         vm.article = article;
-        vm.edition = Object.assign({},article);
+        vm.edition = Object.assign({},vm.article);
       });
+    }
+
+    function saveComment(){
+      storeService.setComment(vm.newComment, vm.article.id);
+    }
+
+    function updateComment(commentId){
+      storeService.setComment(vm.editableCommentText, null, commentId).then(editComment);
+    }
+
+    function editComment(index){
+      vm.editableCommentText = '';
+      if(vm.editableComment == index){
+        vm.editableComment = -1;
+      }else{
+        vm.editableComment = index;
+      }
+    }
+
+    function deleteComment(commentId){
+      storeService.deleteComment(commentId, vm.article.id);
     }
     /*end public functions*/
 
@@ -92,14 +129,23 @@
 		var vm = this;
 		vm.articles = {};
 
+		vm.deleteArticle = deleteArticle;
+
 		_activate();
+
+		/*private functions*/
 		function _activate(){
-			storeService.resetArticles();
 			storeService.getArticleList().then(function(articles){
 				vm.articles = articles;
 			});
 		}
+		/*end private functions*/
 
+		/*public functions*/
+		function deleteArticle(articleId){
+			storeService.deleteArticle(articleId);
+		}
+		/*end public functions*/
 	}
 })();
 
@@ -169,8 +215,8 @@ module.exports = (function(){
     }
 
     /*article_id(int)*/
-    function getComments(){
-      return $http.get(url.concat('?route=getComments'));
+    function getComments(articleId){
+      return $http.get(url.concat('?route=getComments&article_id=').concat(articleId));
     }
 
     /*N/A*/
@@ -265,19 +311,19 @@ module.exports = (function(){
 				method: 'POST',
 				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 				data: $httpParamSerializerJQLike({
-					commentId: commentId
+					comment_id: commentId
 	      })
 			});
     }
 
     /*comment_id(int), comment(string)*/
-    function updateComment (comment_id, comment){
+    function updateComment (comment, commentId){
 			return $http({
 				url:url.concat('?route=updateComment'),
 				method: 'POST',
 				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 				data: $httpParamSerializerJQLike({
-					commentId: commentId,
+					comment_id: commentId,
 					comment: comment
 	      })
 			});
@@ -312,6 +358,9 @@ module.exports = (function(){
 
     function dbArrayAdapter(dbArray){
       var dbObject = {}, tempObj = {}, value;
+      if(typeof dbArray !== 'object'){
+        return tempObj;
+      }
       dbArray.forEach(function(object){
         tempObj = {};
         for(var key in object){
@@ -360,8 +409,8 @@ module.exports = (function(){
     };
 
     function getArticle(articleId){
-      var article;
       var defer = $q.defer();
+      var article;
       if(articles[articleId]){
         defer.resolve(articles[articleId]);
       }else{
@@ -376,15 +425,11 @@ module.exports = (function(){
 
     function getArticleList(){
       var defer = $q.defer();
-      if(Object.keys(articles).length){
+      ajaxService.getArticleList().then(function(response){
+        /*keeping old articles as they were stored*/
+        articles = Object.assign(processService.dbArrayAdapter(response.data.payload), articles);
         defer.resolve(articles);
-      }else{
-        ajaxService.getArticleList().then(function(response){
-          articles = processService.dbArrayAdapter(response.data.payload);
-          defer.resolve(articles);
-        });
-      }
-
+      });
       return defer.promise;
     }
 
@@ -395,6 +440,12 @@ module.exports = (function(){
 
     function getComments(articleId){
       var defer = $q.defer();
+      var newComments;
+      ajaxService.getComments(articleId).then(function(response){
+        newComments = processService.dbArrayAdapter(response.data.payload);
+        Object.assign(comments,newComments);
+        articles[articleId].comments = newComments;
+      });
       return defer.promise;
     }
 
@@ -404,19 +455,20 @@ module.exports = (function(){
     }
 
     function setArticle(title, description, body, articleId){
+      var defer = $q.defer();
       /*save*/
       if(!articleId){
-        return ajaxService.saveArticle(title, description, body).then(function(response){
-          return getArticle(response.data.payload);
+        ajaxService.saveArticle(title, description, body).then(function(response){
+          defer.resolve(getArticle(response.data.payload));
         });
       /*update*/
       }else{
-        return ajaxService.updateArticle(articleId, title, description, body).then(function(response){
+        ajaxService.updateArticle(articleId, title, description, body).then(function(response){
           resetArticle(articleId);
-          return getArticle(articleId);
+          defer.resolve(getArticle(articleId));
         });
       }
-
+      return defer.promise;
     }
 
     function setTag(articleId, tagId, tag){
@@ -424,8 +476,19 @@ module.exports = (function(){
       return defer.promise;
     }
 
-    function setComment(articleId, commentId, comment){
+    function setComment(comment, articleId, commentId){
       var defer = $q.defer();
+      if(comment, commentId){
+        ajaxService.updateComment(comment, commentId).then(function(response){
+          comments[commentId].text = comment;
+          defer.resolve(response);
+        });
+      }else{
+        ajaxService.saveComment(comment, articleId).then(function(response){
+          getComments(articleId);
+          defer.resolve(response);
+        });
+      }
       return defer.promise;
     }
 
@@ -436,11 +499,20 @@ module.exports = (function(){
 
     function deleteArticle(articleId){
       var defer = $q.defer();
+      ajaxService.deleteArticle(articleId).then(function(response){
+        delete articles[articleId];
+        defer.resolve(response);
+      });
       return defer.promise;
     }
 
-    function deleteComment(commentId){
+    function deleteComment(commentId, articleId){
       var defer = $q.defer();
+      ajaxService.deleteComment(commentId).then(function(response){
+        delete comments[commentId];
+        delete articles[articleId].comments[commentId];
+        defer.resolve();
+      });
       return defer.promise;
     }
 

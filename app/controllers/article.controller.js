@@ -9,9 +9,16 @@
     vm.editEnabled = false;
 		vm.article = {};
     vm.edition = {};
+    vm.newComment = '';
+    vm.editableComment = -1;
+    vm.editableCommentText = '';
 
     vm.toggleEdit = toggleEdit;
     vm.saveArticle = saveArticle;
+    vm.saveComment = saveComment;
+    vm.editComment = editComment;
+    vm.updateComment = updateComment;
+    vm.deleteComment = deleteComment;
 
 		_activate();
     /*private functions*/
@@ -19,14 +26,22 @@
       if(isNaN($state.params.id)){
         vm.editEnabled = true;
       }else{
-        _getArticle($state.params.id);
+        _getArticle();
       }
 		}
-    function _getArticle(articleId){
-      storeService.getArticle(articleId).then(function(article){
+
+    function _getArticle(){
+      storeService.getArticle($state.params.id).then(function(article){
 				vm.article = article;
         vm.edition = Object.assign({},article);
+        if(!vm.article.comments){
+          _getComments();
+        }
 			});
+    }
+
+    function _getComments(){
+      storeService.getComments(vm.article.id);
     }
     /*end private functions*/
 
@@ -37,14 +52,36 @@
         vm.edition = Object.assign({},vm.article);
       }
     }
+
     function saveArticle(){
       storeService.setArticle(vm.edition.title, vm.edition.description, vm.edition.body, vm.article.id).then(function(article){
         if(!vm.article.id){
           $state.go('/article', {id: article.id}, {notify: false});
         }
         vm.article = article;
-        vm.edition = Object.assign({},article);
+        vm.edition = Object.assign({},vm.article);
       });
+    }
+
+    function saveComment(){
+      storeService.setComment(vm.newComment, vm.article.id);
+    }
+
+    function updateComment(commentId){
+      storeService.setComment(vm.editableCommentText, null, commentId).then(editComment);
+    }
+
+    function editComment(index){
+      vm.editableCommentText = '';
+      if(vm.editableComment == index){
+        vm.editableComment = -1;
+      }else{
+        vm.editableComment = index;
+      }
+    }
+
+    function deleteComment(commentId){
+      storeService.deleteComment(commentId, vm.article.id);
     }
     /*end public functions*/
 

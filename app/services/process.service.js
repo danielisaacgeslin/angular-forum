@@ -11,6 +11,9 @@
 
     function dbArrayAdapter(dbArray){
       var dbObject = {}, tempObj = {}, value;
+      if(typeof dbArray !== 'object'){
+        return tempObj;
+      }
       dbArray.forEach(function(object){
         tempObj = {};
         for(var key in object){

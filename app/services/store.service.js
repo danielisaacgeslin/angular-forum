@@ -28,8 +28,8 @@
     };
 
     function getArticle(articleId){
-      var article;
       var defer = $q.defer();
+      var article;
       if(articles[articleId]){
         defer.resolve(articles[articleId]);
       }else{
@@ -44,15 +44,11 @@
 
     function getArticleList(){
       var defer = $q.defer();
-      if(Object.keys(articles).length){
+      ajaxService.getArticleList().then(function(response){
+        /*keeping old articles as they were stored*/
+        articles = Object.assign(processService.dbArrayAdapter(response.data.payload), articles);
         defer.resolve(articles);
-      }else{
-        ajaxService.getArticleList().then(function(response){
-          articles = processService.dbArrayAdapter(response.data.payload);
-          defer.resolve(articles);
-        });
-      }
-
+      });
       return defer.promise;
     }
 
@@ -63,6 +59,12 @@
 
     function getComments(articleId){
       var defer = $q.defer();
+      var newComments;
+      ajaxService.getComments(articleId).then(function(response){
+        newComments = processService.dbArrayAdapter(response.data.payload);
+        Object.assign(comments,newComments);
+        articles[articleId].comments = newComments;
+      });
       return defer.promise;
     }
 
@@ -72,19 +74,20 @@
     }
 
     function setArticle(title, description, body, articleId){
+      var defer = $q.defer();
       /*save*/
       if(!articleId){
-        return ajaxService.saveArticle(title, description, body).then(function(response){
-          return getArticle(response.data.payload);
+        ajaxService.saveArticle(title, description, body).then(function(response){
+          defer.resolve(getArticle(response.data.payload));
         });
       /*update*/
       }else{
-        return ajaxService.updateArticle(articleId, title, description, body).then(function(response){
+        ajaxService.updateArticle(articleId, title, description, body).then(function(response){
           resetArticle(articleId);
-          return getArticle(articleId);
+          defer.resolve(getArticle(articleId));
         });
       }
-
+      return defer.promise;
     }
 
     function setTag(articleId, tagId, tag){
@@ -92,8 +95,19 @@
       return defer.promise;
     }
 
-    function setComment(articleId, commentId, comment){
+    function setComment(comment, articleId, commentId){
       var defer = $q.defer();
+      if(comment, commentId){
+        ajaxService.updateComment(comment, commentId).then(function(response){
+          comments[commentId].text = comment;
+          defer.resolve(response);
+        });
+      }else{
+        ajaxService.saveComment(comment, articleId).then(function(response){
+          getComments(articleId);
+          defer.resolve(response);
+        });
+      }
       return defer.promise;
     }
 
@@ -104,11 +118,20 @@
 
     function deleteArticle(articleId){
       var defer = $q.defer();
+      ajaxService.deleteArticle(articleId).then(function(response){
+        delete articles[articleId];
+        defer.resolve(response);
+      });
       return defer.promise;
     }
 
-    function deleteComment(commentId){
+    function deleteComment(commentId, articleId){
       var defer = $q.defer();
+      ajaxService.deleteComment(commentId).then(function(response){
+        delete comments[commentId];
+        delete articles[articleId].comments[commentId];
+        defer.resolve();
+      });
       return defer.promise;
     }
 
