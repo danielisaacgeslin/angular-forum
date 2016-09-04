@@ -12,7 +12,7 @@
           <p>
             <span>{{comment.creation_timestamp | date: 'dd/MM/y HH:mm'}} - </span>
             <strong>{{comment.text}} </strong>
-            <a ng-click="vm.editComment($index)">Edit</a>
+            <a ng-click="vm.editComment($index, comment.id)">Edit</a>
             <a ng-click="vm.deleteComment(comment.id)">Delete</a>
             <div ng-if="vm.editableComment == $index">
               <input ng-model="vm.editableCommentText" type="text" />

@@ -36,7 +36,9 @@
         ajaxService.getArticle(articleId).then(function(response){
           article = processService.dbArrayAdapter(response.data.payload);
           articles[articleId] = article[Object.keys(article)[0]];
-          defer.resolve(articles[articleId] ? articles[articleId] : {});
+          getComments(articleId).then(function(){
+            defer.resolve(articles[articleId] ? articles[articleId] : {});
+          });
         });
       }
       return defer.promise;
@@ -64,6 +66,7 @@
         newComments = processService.dbArrayAdapter(response.data.payload);
         Object.assign(comments,newComments);
         articles[articleId].comments = newComments;
+        defer.resolve();
       });
       return defer.promise;
     }

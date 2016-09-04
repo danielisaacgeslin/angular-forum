@@ -64,19 +64,22 @@
     }
 
     function saveComment(){
-      storeService.setComment(vm.newComment, vm.article.id);
+      storeService.setComment(vm.newComment, vm.article.id).then(function(){
+        vm.newComment = '';
+      });
     }
 
     function updateComment(commentId){
       storeService.setComment(vm.editableCommentText, null, commentId).then(editComment);
     }
 
-    function editComment(index){
+    function editComment(index, commentId){
       vm.editableCommentText = '';
       if(vm.editableComment == index){
         vm.editableComment = -1;
       }else{
         vm.editableComment = index;
+        vm.editableCommentText = !commentId ? '' : vm.article.comments[commentId].text;
       }
     }
 
