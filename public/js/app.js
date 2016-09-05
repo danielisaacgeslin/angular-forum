@@ -44,6 +44,7 @@
 		vm.filteredTags = {};
 		vm.noTagOption = {0: {id: 0, text: 'No tags available'}};
 		vm.selectedTag;
+		vm.editEnabled = true;
 
     vm.toggleEdit = toggleEdit;
     vm.saveArticle = saveArticle;
