@@ -1,6 +1,10 @@
 <div class="row">
   <div class="col-md-9">
     <article>
+      <h5>Tags</h5>
+      <ul>
+        <li ng-repeat="(id, tag) in vm.article.tags">{{tag.text}}</li>
+      </ul>
       <h1>{{vm.editEnabled ? vm.edition.title : vm.article.title}}</h1>
       <h3>{{vm.editEnabled ? vm.edition.description : vm.article.description}}</h3>
       <p>{{vm.editEnabled ? vm.edition.body : vm.article.body}}</p>
@@ -38,6 +42,10 @@
       <input type="text" ng-model="vm.edition.description"/>
       <label>Body</label>
       <textarea ng-model="vm.edition.body"></textarea>
+      <select ng-selected="$last"
+              ng-options="tag as tag.text for tag in vm.filteredTags track by tag.id"
+              ng-model="vm.selectedTag"></select>
+      <button ng-click="vm.setTag()" class="btn">Add Tag</button>
     </div>
   </div>
 </div>

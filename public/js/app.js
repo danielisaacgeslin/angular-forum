@@ -42,6 +42,8 @@
     vm.newComment = '';
     vm.editableComment = -1;
     vm.editableCommentText = '';
+		vm.filteredTags = {};
+		vm.selectedTag;
 
     vm.toggleEdit = toggleEdit;
     vm.saveArticle = saveArticle;
@@ -49,6 +51,7 @@
     vm.editComment = editComment;
     vm.updateComment = updateComment;
     vm.deleteComment = deleteComment;
+		vm.setTag = setTag;
 
 		_activate();
     /*private functions*/
@@ -67,12 +70,44 @@
         if(!vm.article.comments){
           _getComments();
         }
+				if(!vm.article.tags){
+					_getArticleTagList().then(_getTags);
+				}
 			});
     }
 
     function _getComments(){
       storeService.getComments(vm.article.id);
     }
+
+		function _getArticleTagList(){
+			return storeService.getArticleTagList(vm.article.id);
+		}
+
+		function _getTags(){
+			storeService.getTags().then(function(tags){
+				vm.tags = tags;
+				_filterTags();
+			});
+		}
+
+		function _filterTags(){
+			var filteredTags = {},  marker;
+			for(var tagKey in vm.tags){
+				marker = true;
+					for(var articleTagKey in vm.article.tags){
+						if(articleTagKey === vm.tags[tagKey].id){
+							marker = false;
+							break;
+						}
+					}
+					if(marker){
+						filteredTags[tagKey] = Object.assign({}, vm.tags[tagKey]);
+					}
+			}
+			vm.filteredTags = filteredTags;
+			vm.selectedTag = vm.filteredTags[Object.keys(vm.filteredTags)[0]];
+		}
     /*end private functions*/
 
     /*public functions*/
@@ -121,6 +156,12 @@
     function deleteComment(commentId){
       storeService.deleteComment(commentId, vm.article.id);
     }
+
+		function setTag(){
+			storeService.setTag(vm.article.id, vm.selectedTag.id).then(function(){
+				_filterTags();
+			});
+		}
     /*end public functions*/
 
 	}
@@ -425,9 +466,9 @@ module.exports = (function(){
         ajaxService.getArticle(articleId).then(function(response){
           article = processService.dbArrayAdapter(response.data.payload);
           articles[articleId] = article[Object.keys(article)[0]];
-          getComments(articleId).then(function(){
-            defer.resolve(articles[articleId] ? articles[articleId] : {});
-          });
+          getComments(articleId);
+					getArticleTagList(articleId);
+					defer.resolve(articles[articleId] ? articles[articleId] : {});
         });
       }
       return defer.promise;
@@ -445,6 +486,13 @@ module.exports = (function(){
 
     function getArticleTagList(articleId){
       var defer = $q.defer();
+			var articleTags;
+			ajaxService.getArticleTagList(articleId).then(function(response){
+				articleTags = processService.dbArrayAdapter(response.data.payload);
+				Object.assign(tags, articleTags);
+				articles[articleId].tags = articleTags;
+        defer.resolve(articleTags);
+			});
       return defer.promise;
     }
 
@@ -462,6 +510,10 @@ module.exports = (function(){
 
     function getTags(){
       var defer = $q.defer();
+			ajaxService.getTags().then(function(response){
+				tags = Object.assign(processService.dbArrayAdapter(response.data.payload), tags);
+				defer.resolve(tags);
+			});
       return defer.promise;
     }
 
@@ -484,6 +536,15 @@ module.exports = (function(){
 
     function setTag(articleId, tagId, tag){
       var defer = $q.defer();
+			if(!tag){
+				ajaxService.addTag(articleId, tagId).then(function(response){
+					getArticleTagList(articleId).then(function(){
+						defer.resolve(tags);
+					});
+				});
+			}else{
+				//create new tag
+			}
       return defer.promise;
     }
 

@@ -36,9 +36,9 @@
         ajaxService.getArticle(articleId).then(function(response){
           article = processService.dbArrayAdapter(response.data.payload);
           articles[articleId] = article[Object.keys(article)[0]];
-          getComments(articleId).then(function(){
-            defer.resolve(articles[articleId] ? articles[articleId] : {});
-          });
+          getComments(articleId);
+					getArticleTagList(articleId);
+					defer.resolve(articles[articleId] ? articles[articleId] : {});
         });
       }
       return defer.promise;
@@ -56,6 +56,13 @@
 
     function getArticleTagList(articleId){
       var defer = $q.defer();
+			var articleTags;
+			ajaxService.getArticleTagList(articleId).then(function(response){
+				articleTags = processService.dbArrayAdapter(response.data.payload);
+				Object.assign(tags, articleTags);
+				articles[articleId].tags = articleTags;
+        defer.resolve(articleTags);
+			});
       return defer.promise;
     }
 
@@ -73,6 +80,10 @@
 
     function getTags(){
       var defer = $q.defer();
+			ajaxService.getTags().then(function(response){
+				tags = Object.assign(processService.dbArrayAdapter(response.data.payload), tags);
+				defer.resolve(tags);
+			});
       return defer.promise;
     }
 
@@ -95,6 +106,15 @@
 
     function setTag(articleId, tagId, tag){
       var defer = $q.defer();
+			if(!tag){
+				ajaxService.addTag(articleId, tagId).then(function(response){
+					getArticleTagList(articleId).then(function(){
+						defer.resolve(tags);
+					});
+				});
+			}else{
+				//create new tag
+			}
       return defer.promise;
     }
 
