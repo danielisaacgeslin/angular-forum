@@ -56,7 +56,12 @@
     function saveArticle(){
       storeService.setArticle(vm.edition.title, vm.edition.description, vm.edition.body, vm.article.id).then(function(article){
         if(!vm.article.id){
-          $state.go('/article', {id: article.id}, {notify: false});
+          $state.go('/article', {id: article.id}, {
+					    notify:false,
+					    reload:false,
+					    location:'replace',
+					    inherit:true
+					});
         }
         vm.article = article;
         vm.edition = Object.assign({},vm.article);
