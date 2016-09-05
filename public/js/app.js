@@ -36,13 +36,13 @@
 
 	function articleController($scope, $state, storeService) {
 		var vm = this;
-    vm.editEnabled = false;
 		vm.article = {};
     vm.edition = {};
     vm.newComment = '';
     vm.editableComment = -1;
     vm.editableCommentText = '';
 		vm.filteredTags = {};
+		vm.noTagOption = {0: {id: 0, text: 'No tags available'}};
 		vm.selectedTag;
 
     vm.toggleEdit = toggleEdit;
@@ -58,6 +58,7 @@
 		function _activate(){
       if(isNaN($state.params.id)){
         vm.editEnabled = true;
+				_getTags();
       }else{
         _getArticle();
       }
@@ -72,6 +73,8 @@
         }
 				if(!vm.article.tags){
 					_getArticleTagList().then(_getTags);
+				}else{
+					_getTags();
 				}
 			});
     }
@@ -93,6 +96,11 @@
 
 		function _filterTags(){
 			var filteredTags = {},  marker;
+			if(!vm.article.id){
+				vm.filteredTags = vm.noTagOption;
+				vm.selectedTag = vm.filteredTags[Object.keys(vm.filteredTags)[0]];
+				return false;
+			}
 			for(var tagKey in vm.tags){
 				marker = true;
 					for(var articleTagKey in vm.article.tags){
@@ -106,6 +114,9 @@
 					}
 			}
 			vm.filteredTags = filteredTags;
+			if(!Object.keys(vm.filteredTags).length){
+				vm.filteredTags = vm.noTagOption;
+			}
 			vm.selectedTag = vm.filteredTags[Object.keys(vm.filteredTags)[0]];
 		}
     /*end private functions*/
@@ -127,6 +138,7 @@
 					    location:'replace',
 					    inherit:true
 					});
+					_getTags();
         }
         vm.article = article;
         vm.edition = Object.assign({},vm.article);
@@ -158,9 +170,7 @@
     }
 
 		function setTag(){
-			storeService.setTag(vm.article.id, vm.selectedTag.id).then(function(){
-				_filterTags();
-			});
+			storeService.setTag(vm.article.id, vm.selectedTag.id).then(_filterTags);
 		}
     /*end public functions*/
 
