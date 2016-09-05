@@ -59,30 +59,21 @@
     /*private functions*/
 		function _activate(){
       if(isNaN($state.params.id)){
-        vm.editEnabled = true;
-				_getTags();
+				_getTags().then(_filterTags);
       }else{
-        _getArticle();
+        _getArticle().then(_getComments).then(_getArticleTagList).then(_getTags).then(_filterTags);
       }
 		}
 
     function _getArticle(){
-      storeService.getArticle($state.params.id).then(function(article){
+      return storeService.getArticle($state.params.id).then(function(article){
 				vm.article = article;
         vm.edition = Object.assign({},article);
-        if(!vm.article.comments){
-          _getComments();
-        }
-				if(!vm.article.tags){
-					_getArticleTagList().then(_getTags);
-				}else{
-					_getTags();
-				}
 			});
     }
 
     function _getComments(){
-      storeService.getComments(vm.article.id);
+      return storeService.getComments(vm.article.id);
     }
 
 		function _getArticleTagList(){
@@ -90,9 +81,8 @@
 		}
 
 		function _getTags(){
-			storeService.getTags().then(function(tags){
+			return storeService.getTags().then(function(tags){
 				vm.tags = tags;
-				_filterTags();
 			});
 		}
 
@@ -132,7 +122,7 @@
     }
 
     function saveArticle(){
-      storeService.setArticle(vm.edition.title, vm.edition.description, vm.edition.body, vm.article.id).then(function(article){
+      return storeService.setArticle(vm.edition.title, vm.edition.description, vm.edition.body, vm.article.id).then(function(article){
         if(!vm.article.id){
           $state.go('/article', {id: article.id}, {
 					    notify:false,
@@ -140,21 +130,21 @@
 					    location:'replace',
 					    inherit:true
 					});
-					_getTags();
         }
         vm.article = article;
         vm.edition = Object.assign({},vm.article);
+				_filterTags();
       });
     }
 
     function saveComment(){
-      storeService.setComment(vm.newComment, vm.article.id).then(function(){
+      return storeService.setComment(vm.newComment, vm.article.id).then(function(){
         vm.newComment = '';
       });
     }
 
     function updateComment(commentId){
-      storeService.setComment(vm.editableCommentText, null, commentId).then(editComment);
+      return storeService.setComment(vm.editableCommentText, null, commentId).then(editComment);
     }
 
     function editComment(index, commentId){
@@ -168,7 +158,7 @@
     }
 
     function deleteComment(commentId){
-      storeService.deleteComment(commentId, vm.article.id);
+      return storeService.deleteComment(commentId, vm.article.id);
     }
 
 		function setTag(){
@@ -176,7 +166,7 @@
 		}
 
 		function deleteTag(tagId){
-			storeService.deleteTag(vm.article.id, tagId).then(_filterTags);
+			return storeService.deleteTag(vm.article.id, tagId).then(_filterTags);
 		}
     /*end public functions*/
 
