@@ -111,6 +111,21 @@
 			}
 			vm.selectedTag = vm.filteredTags[Object.keys(vm.filteredTags)[0]];
 		}
+
+		function _setArticle(){
+			return storeService.setArticle(vm.edition.title, vm.edition.description, vm.edition.body, vm.article.id).then(function(article){
+        if(!vm.article.id){
+          $state.go('/article', {id: article.id}, {
+					    notify:false,
+					    reload:false,
+					    location:'replace',
+					    inherit:true
+					});
+        }
+        vm.article = article;
+        vm.edition = Object.assign({},vm.article);
+      });
+		}
     /*end private functions*/
 
     /*public functions*/
@@ -122,19 +137,7 @@
     }
 
     function saveArticle(){
-      return storeService.setArticle(vm.edition.title, vm.edition.description, vm.edition.body, vm.article.id).then(function(article){
-        if(!vm.article.id){
-          $state.go('/article', {id: article.id}, {
-					    notify:false,
-					    reload:false,
-					    location:'replace',
-					    inherit:true
-					});
-        }
-        vm.article = article;
-        vm.edition = Object.assign({},vm.article);
-				_filterTags();
-      });
+      _setArticle().then(_filterTags);
     }
 
     function saveComment(){
