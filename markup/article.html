@@ -3,7 +3,9 @@
     <article>
       <h5>Tags</h5>
       <ul>
-        <li ng-repeat="(id, tag) in vm.article.tags">{{tag.text}}</li>
+        <li ng-repeat="(id, tag) in vm.article.tags">
+          {{tag.text}} <a ng-if="vm.editEnabled" ng-click="vm.deleteTag(tag.id)">delete</a>
+        </li>
       </ul>
       <h1>{{vm.editEnabled ? vm.edition.title : vm.article.title}}</h1>
       <h3>{{vm.editEnabled ? vm.edition.description : vm.article.description}}</h3>

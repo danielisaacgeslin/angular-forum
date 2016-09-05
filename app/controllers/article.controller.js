@@ -23,6 +23,7 @@
     vm.updateComment = updateComment;
     vm.deleteComment = deleteComment;
 		vm.setTag = setTag;
+		vm.deleteTag = deleteTag;
 
 		_activate();
     /*private functions*/
@@ -142,6 +143,10 @@
 
 		function setTag(){
 			storeService.setTag(vm.article.id, vm.selectedTag.id).then(_filterTags);
+		}
+
+		function deleteTag(tagId){
+			storeService.deleteTag(vm.article.id, tagId).then(_filterTags);
 		}
     /*end public functions*/
 

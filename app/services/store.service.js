@@ -134,8 +134,12 @@
       return defer.promise;
     }
 
-    function deleteTag(tagId){
+    function deleteTag(articleId, tagId){
       var defer = $q.defer();
+			ajaxService.removeTag(articleId, tagId).then(function(response){
+				delete articles[articleId].tags[tagId];
+				defer.resolve();
+			});
       return defer.promise;
     }
 

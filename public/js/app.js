@@ -53,6 +53,7 @@
     vm.updateComment = updateComment;
     vm.deleteComment = deleteComment;
 		vm.setTag = setTag;
+		vm.deleteTag = deleteTag;
 
 		_activate();
     /*private functions*/
@@ -172,6 +173,10 @@
 
 		function setTag(){
 			storeService.setTag(vm.article.id, vm.selectedTag.id).then(_filterTags);
+		}
+
+		function deleteTag(tagId){
+			storeService.deleteTag(vm.article.id, tagId).then(_filterTags);
 		}
     /*end public functions*/
 
@@ -575,8 +580,12 @@ module.exports = (function(){
       return defer.promise;
     }
 
-    function deleteTag(tagId){
+    function deleteTag(articleId, tagId){
       var defer = $q.defer();
+			ajaxService.removeTag(articleId, tagId).then(function(response){
+				delete articles[articleId].tags[tagId];
+				defer.resolve();
+			});
       return defer.promise;
     }
 
