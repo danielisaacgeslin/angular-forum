@@ -16,6 +16,11 @@
       templateUrl : "article.html",
       controller: 'articleController',
       controllerAs: 'vm'
+		}).state('/tags', {
+			url : "/tags",
+      templateUrl : "tags.html",
+      controller: 'tagsController',
+      controllerAs: 'vm'
 		});
 	}
 
@@ -28,6 +33,36 @@
 })();
 
 },{}],2:[function(require,module,exports){
+(function(){
+	'use strict';
+	angular.module('app').controller('appController', appController);
+
+	appController.$inject = ['$scope', '$state'];
+
+	function appController($scope, $state) {
+		var vm = this;
+    vm.route = null;
+
+    _activate();
+
+    $scope.$watch(function(){return $state.current;}, _updateRoute);
+
+		/*private functions*/
+		function _activate(){
+			_updateRoute();
+		}
+
+    function _updateRoute(){
+      vm.route = $state.current.name;
+    }
+		/*end private functions*/
+
+		/*public functions*/
+		/*end public functions*/
+	}
+})();
+
+},{}],3:[function(require,module,exports){
 (function(){
 	'use strict';
 	angular.module('app').controller('articleController', articleController);
@@ -176,7 +211,7 @@
 	}
 })();
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 (function(){
 	'use strict';
 	angular.module('app').controller('mainController', mainController);
@@ -207,22 +242,50 @@
 	}
 })();
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
+(function(){
+	'use strict';
+	angular.module('app').controller('tagsController', tagsController);
+
+	tagsController.$inject = ['$scope', 'storeService'];
+
+	function tagsController($scope, storeService) {
+		var vm = this;
+		vm.tags = {};
+
+		_activate();
+
+		/*private functions*/
+		function _activate(){
+			storeService.getTags().then(function(tags){
+				vm.tags = tags;
+			});
+		}
+		/*end private functions*/
+
+		/*public functions*/
+		/*end public functions*/
+	}
+})();
+
+},{}],6:[function(require,module,exports){
 require('./modules/app.module');
 require('./config');
 require('./services/process.service');
 require('./services/ajax.service');
 require('./services/store.service');
+require('./controllers/app.controller');
 require('./controllers/main.controller');
 require('./controllers/article.controller');
+require('./controllers/tags.controller');
 
-},{"./config":1,"./controllers/article.controller":2,"./controllers/main.controller":3,"./modules/app.module":5,"./services/ajax.service":6,"./services/process.service":7,"./services/store.service":8}],5:[function(require,module,exports){
+},{"./config":1,"./controllers/app.controller":2,"./controllers/article.controller":3,"./controllers/main.controller":4,"./controllers/tags.controller":5,"./modules/app.module":7,"./services/ajax.service":8,"./services/process.service":9,"./services/store.service":10}],7:[function(require,module,exports){
 module.exports = (function(){
   'use strict';
   angular.module('app', ['ui.router','ngSanitize']);
 })();
 
-},{}],6:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 (function(){
 	'use strict';
 	angular.module('app').factory('ajaxService', ajaxService);
@@ -402,7 +465,7 @@ module.exports = (function(){
 	}
 })();
 
-},{}],7:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 (function(){
 	'use strict';
 	angular.module('app').factory('processService', processService);
@@ -436,7 +499,7 @@ module.exports = (function(){
 	}
 })();
 
-},{}],8:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 (function(){
 	'use strict';
 	angular.module('app').factory('storeService', storeService);
@@ -625,4 +688,4 @@ module.exports = (function(){
 	}
 })();
 
-},{}]},{},[4]);
+},{}]},{},[6]);

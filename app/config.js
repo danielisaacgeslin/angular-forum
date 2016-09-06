@@ -15,6 +15,11 @@
       templateUrl : "article.html",
       controller: 'articleController',
       controllerAs: 'vm'
+		}).state('/tags', {
+			url : "/tags",
+      templateUrl : "tags.html",
+      controller: 'tagsController',
+      controllerAs: 'vm'
 		});
 	}
 
