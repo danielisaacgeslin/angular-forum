@@ -2,9 +2,9 @@
 	'use strict';
 	angular.module('app').controller('articleController', articleController);
 
-	articleController.$inject = ['$scope', '$state', 'storeService'];
+	articleController.$inject = ['$scope', '$state', '$q', 'storeService'];
 
-	function articleController($scope, $state, storeService) {
+	function articleController($scope, $state, $q, storeService) {
 		var vm = this;
 		vm.article = {};
     vm.edition = {};
@@ -13,7 +13,7 @@
     vm.editableCommentText = '';
 		vm.filteredTags = {};
 		vm.noTagOption = {0: {id: 0, text: 'No tags available'}};
-		vm.selectedTag;
+		vm.selectedTag = null;
 		vm.editEnabled = true;
 
     vm.toggleEdit = toggleEdit;
@@ -31,7 +31,10 @@
       if(isNaN($state.params.id)){
 				_getTags().then(_filterTags);
       }else{
-        _getArticle().then(_getComments).then(_getArticleTagList).then(_getTags).then(_filterTags);
+        _getArticle().then(function(){
+					_getComments();
+					$q.all([_getArticleTagList(), _getTags()]).then(_filterTags);
+				});
       }
 		}
 

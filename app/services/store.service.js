@@ -36,8 +36,6 @@
         ajaxService.getArticle(articleId).then(function(response){
           article = processService.dbArrayAdapter(response.data.payload);
           articles[articleId] = article[Object.keys(article)[0]];
-          getComments(articleId);
-					getArticleTagList(articleId);
 					defer.resolve(articles[articleId] ? articles[articleId] : {});
         });
       }
