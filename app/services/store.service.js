@@ -36,7 +36,7 @@
         ajaxService.getArticle(articleId).then(function(response){
           article = processService.dbArrayAdapter(response.data.payload);
           articles[articleId] = article[Object.keys(article)[0]];
-					defer.resolve(articles[articleId] ? articles[articleId] : {});
+					defer.resolve(articles[articleId]);
         });
       }
       return defer.promise;
@@ -90,13 +90,13 @@
       /*save*/
       if(!articleId){
         ajaxService.saveArticle(title, description, body).then(function(response){
-          defer.resolve(getArticle(response.data.payload));
+          defer.resolve(response.data.payload);
         });
       /*update*/
       }else{
         ajaxService.updateArticle(articleId, title, description, body).then(function(response){
           resetArticle(articleId);
-          defer.resolve(getArticle(articleId));
+          defer.resolve(articleId);
         });
       }
       return defer.promise;
@@ -106,9 +106,7 @@
       var defer = $q.defer();
 			if(!tag){
 				ajaxService.addTag(articleId, tagId).then(function(response){
-					getArticleTagList(articleId).then(function(){
-						defer.resolve(tags);
-					});
+					defer.resolve(response.data.payload);
 				});
 			}else{
 				//create new tag
@@ -118,6 +116,7 @@
 
     function setComment(comment, articleId, commentId){
       var defer = $q.defer();
+			var newComment = {};
       if(comment, commentId){
         ajaxService.updateComment(comment, commentId).then(function(response){
           comments[commentId].text = comment;
@@ -125,7 +124,9 @@
         });
       }else{
         ajaxService.saveComment(comment, articleId).then(function(response){
-          getComments(articleId);
+          newComment = {id: response.data.payload, text: comment, creation_timestamp: new Date()}
+					comments[response.data.payload] = newComment;
+					articles[articleId].comments[response.data.payload] = newComment;
           defer.resolve(response);
         });
       }

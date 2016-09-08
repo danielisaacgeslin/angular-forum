@@ -14,6 +14,7 @@
 		vm.filteredTags = {};
 		vm.noTagOption = {0: {id: 0, text: 'No tags available'}};
 		vm.selectedTag = null;
+		vm.tempId = null;
 		vm.editEnabled = true;
 
     vm.toggleEdit = toggleEdit;
@@ -39,7 +40,7 @@
 		}
 
     function _getArticle(){
-      return storeService.getArticle($state.params.id).then(function(article){
+      return storeService.getArticle(vm.tempId ? vm.tempId : $state.params.id).then(function(article){
 				vm.article = article;
         vm.edition = Object.assign({},article);
 			});
@@ -86,17 +87,16 @@
 		}
 
 		function _setArticle(){
-			return storeService.setArticle(vm.edition.title, vm.edition.description, vm.edition.body, vm.article.id).then(function(article){
+			return storeService.setArticle(vm.edition.title, vm.edition.description, vm.edition.body, vm.article.id).then(function(id){
         if(!vm.article.id){
-          $state.go('/article', {id: article.id}, {
+					vm.tempId = id;
+          $state.go('/article', {id: id}, {
 					    notify:false,
 					    reload:false,
 					    location:'replace',
 					    inherit:true
 					});
         }
-        vm.article = article;
-        vm.edition = Object.assign({},vm.article);
       });
 		}
     /*end private functions*/
@@ -110,7 +110,7 @@
     }
 
     function saveArticle(){
-      _setArticle().then(_filterTags);
+      _setArticle().then(_getArticle).then(_getArticleTagList).then(_filterTags);
     }
 
     function saveComment(){
@@ -138,7 +138,7 @@
     }
 
 		function setTag(){
-			storeService.setTag(vm.article.id, vm.selectedTag.id).then(_filterTags);
+			storeService.setTag(vm.article.id, vm.selectedTag.id).then(_getArticleTagList).then(_filterTags);
 		}
 
 		function deleteTag(tagId){
