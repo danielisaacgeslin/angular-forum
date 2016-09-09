@@ -190,7 +190,7 @@
 
     function editComment(index, commentId){
       vm.editableCommentText = '';
-      if(vm.editableComment == index){
+      if(vm.editableComment === index){
         vm.editableComment = -1;
       }else{
         vm.editableComment = index;
@@ -609,13 +609,9 @@ require('./controllers/tags.controller');
 
     function setTag(articleId, tagId, tag){
       var defer = $q.defer();
-			if(!tag){
-				ajaxService.addTag(articleId, tagId).then(function(response){
-					defer.resolve(response.data.payload);
-				});
-			}else{
-				//create new tag
-			}
+			ajaxService.addTag(articleId, tagId).then(function(response){
+				defer.resolve(response.data.payload);
+			});
       return defer.promise;
     }
 
@@ -629,7 +625,7 @@ require('./controllers/tags.controller');
         });
       }else{
         ajaxService.saveComment(comment, articleId).then(function(response){
-          newComment = {id: response.data.payload, text: comment, creation_timestamp: new Date()}
+          newComment = {id: response.data.payload, text: comment, creation_timestamp: new Date()};
 					comments[response.data.payload] = newComment;
 					articles[articleId].comments[response.data.payload] = newComment;
           defer.resolve(response);

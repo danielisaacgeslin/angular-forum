@@ -125,7 +125,7 @@
 
     function editComment(index, commentId){
       vm.editableCommentText = '';
-      if(vm.editableComment == index){
+      if(vm.editableComment === index){
         vm.editableComment = -1;
       }else{
         vm.editableComment = index;

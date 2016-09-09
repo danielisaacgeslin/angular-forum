@@ -8,6 +8,7 @@ var uglify = require('gulp-uglify');
 var htmlmin = require('gulp-htmlmin');
 var imagemin = require('gulp-imagemin');
 var connect = require('gulp-connect');
+var jshint = require('gulp-jshint');
 var runSequence = require('run-sequence');
 
 /*usable from terminal*/
@@ -29,6 +30,16 @@ gulp.task('connect', function() {
     port: 404,
     livereload: true
   });
+});
+
+
+gulp.task('lint', function() {
+  return gulp.src('./app/**/*.js')
+    .pipe(jshint())
+    .pipe(jshint.reporter('gulp-jshint-file-reporter', {
+      filename: './jshint-output.log'
+    }))
+    .pipe(jshint.reporter('default'));
 });
 
 gulp.task('images', function(){
